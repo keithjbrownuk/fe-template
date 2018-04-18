@@ -1,0 +1,35 @@
+{
+  "name": "nwprjt",
+  "version": "1.0.0",
+  "description": "My new project ",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "^2.23.6",
+    "critical": "^1.2.1",
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^3.9.3",
+    "gulp-concat": "^2.6.1",
+    "gulp-html-partial": "^1.0.1",
+    "gulp-minify": "^2.1.0",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-postcss": "^7.0.1",
+    "gulp-sass": "^3.2.1",
+    "gulp-stylelint": "^7.0.0",
+    "gulp-using": "^0.1.1",
+    "postcss-scss": "^1.0.5",
+    "puppeteer": "^1.2.0",
+    "stylelint": "^9.2.0",
+    "stylelint-config-standard": "^18.2.0"
+  },
+  "dependencies": {
+    "ajv": "^6.4.0"
+  }
+}

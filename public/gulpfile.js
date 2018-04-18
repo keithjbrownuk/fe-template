@@ -1,0 +1,137 @@
+var gulp = require('gulp');
+var sass = require('gulp-sass');
+
+// for dev process
+
+var browserSync = require('browser-sync').create();
+var htmlPartial = require('gulp-html-partial');
+var postcss = require('gulp-postcss');
+var reporter = require('postcss-reporter');
+var syntax_scss = require('postcss-scss');
+var stylelint = require('stylelint');
+
+// watches for changes that should create a regeneration
+// of test files and launches browserSync task
+
+gulp.task('watch', ['browserSync'], function() {
+  gulp.watch('dev/scss/**/*.scss',['lint-scss','sass']);
+  gulp.watch('dev/*.html', ['html_partials','lint-scss','sass']);
+  gulp.watch('dev/js/*.js', 'js-copy');
+})
+
+// lint the scss files
+
+gulp.task('lint-scss', function() {
+  // Stylelint config rules
+   var stylelintConfig = {
+     "extends": "stylelint-config-standard",
+     "rules": {
+       // custom / additional rules
+       "block-no-empty": true,
+       "color-no-invalid-hex": true,
+       "declaration-colon-space-after": "always",
+       "declaration-colon-space-before": "never",
+     }
+   }
+
+   var processors = [
+     stylelint(stylelintConfig),
+     reporter({
+       clearMessages: true,
+       throwError: false
+     })
+   ];
+
+   return gulp.src('dev/scss/**/*.scss')
+      .pipe(postcss(processors, {syntax: syntax_scss}));
+});
+
+// generates a single css file from scss files
+
+gulp.task('sass', function() {
+  return gulp.src('dev/scss/**/*.scss')
+    .pipe(sass())
+    .on('error', function(err) {
+      console.log(err.toString());
+      this.emit('end');
+    })
+    .pipe(gulp.dest('test/css'))
+    .pipe(browserSync.reload({
+      stream: true
+    }))
+})
+
+// generates html files in
+
+gulp.task('html_partials', function() {
+      gulp.src('dev/*.html')
+          .pipe(htmlPartial({
+              basePath: 'dev/html_partials/'
+          }))
+          .pipe(gulp.dest('test'))
+          .pipe(browserSync.reload({
+            stream: true
+          }))
+})
+
+// copies JS over to testbed
+
+gulp.task('js-copy', function () {
+    gulp.src('dev/js/*.js')
+        .pipe(gulp.dest('test/js'));
+});
+
+//reloads stuff in browser(s)
+
+gulp.task('browserSync', function() {
+  browserSync.init({
+    proxy: "localhost",
+    open: false
+  })
+})
+
+// for dist process
+
+var log = require('fancy-log');
+var critical = require('critical').stream;
+var minify = require('gulp-minify');
+var cleanCss = require('gulp-clean-css');
+var concat = require('gulp-concat');
+
+gulp.task('distribute', ['critical','prepare-js','prepare-css'])
+
+gulp.task('critical', function () {
+    return gulp.src('test/*.html')
+        .pipe(critical({
+          extract: false,
+          base: 'test/',
+          css: ['test/css/main.css'],
+          inline: false,
+          dimensions: [{
+              height: 640,
+              width: 320
+          }, {
+              height: 900,
+              width: 1200
+          }, {
+              height: 1080,
+              width: 1920
+          }]
+          }))
+        .on('error', function(err) { log.error(err.message); })
+        .pipe(gulp.dest('dist/css'));
+});
+
+gulp.task('prepare-js', function () {
+  return gulp.src('test/js/*.js')
+  .pipe(concat('bundle.js'))
+  .pipe(minify())
+  .pipe(gulp.dest('dist/js'));
+});
+
+gulp.task('prepare-css', function () {
+  return gulp.src('test/css/*.css')
+		.pipe(concat('main.css'))
+		.pipe(cleanCss())
+    .pipe(gulp.dest('dist/css'));
+});
